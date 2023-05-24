@@ -29,7 +29,7 @@ int main(int argc,char *argv[]) {
     }
     if(!portarg){
         fprintf(stderr,"Port arguement needed.\n");
-        fprint(stderr,"%s -p port\n",argv[0]);
+        fprintf(stderr,"%s -p port\n",argv[0]);
         exit(EXIT_FAILURE);
     }
 
