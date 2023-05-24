@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include<getopt.h>
 
-#define defaultPort 1587
+#define defaultPort 0000
 #define BUFFER_SIZE 1024
 
 int main(int argc,char *argv[]) {
