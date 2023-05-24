@@ -4,14 +4,27 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include<getopt.h>
 
-#define PORT 1587
+#define defaultPort 1587
 #define BUFFER_SIZE 1024
 
-int main() {
+int main(int argc,char *argv[]) {
     int server_fd, client_socket, read_size;
+    int port=defaultPort;
     struct sockaddr_in server_addr, client_addr;
     char buffer[BUFFER_SIZE] = {0};
+    int opt;
+    while((opt=getopt(argc,argv,"p"))!=-1){
+        switch(opt){
+            case 'p':
+                port=atoi(optarg);
+                break;
+            default:
+                fprintf(stderr,"%s [-p port]\n",argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
 
    
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
