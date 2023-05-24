@@ -66,27 +66,29 @@ int main(int argc,char *argv[]) {
             perror("Accept failed");
             exit(EXIT_FAILURE);
         }
+        char client_ip[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL) {
+            perror("Inet_ntop failed");
+            exit(EXIT_FAILURE);
+        }
 
-        printf("New client connected: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+        printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
 
-        
         while ((read_size = read(client_socket, buffer, BUFFER_SIZE)) > 0) {
             write(client_socket, buffer, read_size);
             memset(buffer, 0, BUFFER_SIZE);
         }
 
         if (read_size == 0) {
-            printf("Client disconnected: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+            printf("Client disconnected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
         } else if (read_size == -1) {
             perror("Read failed");
             exit(EXIT_FAILURE);
         }
 
-        
         close(client_socket);
     }
 
-    
     close(server_fd);
 
     return 0;
