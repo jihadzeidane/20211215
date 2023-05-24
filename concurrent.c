@@ -15,15 +15,22 @@ int main(int argc,char *argv[]) {
     struct sockaddr_in server_addr, client_addr;
     char buffer[BUFFER_SIZE] = {0};
     int opt;
+    int portarg= 0;
     while((opt=getopt(argc,argv,"p"))!=-1){
         switch(opt){
             case 'p':
                 PORT=atoi(optarg);
+                portarg=1;
                 break;
             default:
                 fprintf(stderr,"%s [-p port]\n",argv[0]);
                 exit(EXIT_FAILURE);
         }
+    }
+    if(!portarg){
+        fprintf(stderr,"Port arguement needed.\n");
+        fprint(stderr,"%s -p port\n",argv[0]);
+        exit(EXIT_FAILURE);
     }
 
    
