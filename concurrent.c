@@ -34,7 +34,7 @@ int main(int argc,char *argv[]) {
     }
     if(PORT ==defaultPort){
         fprintf(stderr,"Port arguement required.\n");
-        fprintf(stderr,"pass port using [-p port]",argv[0]);
+        fprintf(stderr,"pass port using [-p port]\n",argv[0]);
         exit(EXIT_FAILURE);
     }
    
