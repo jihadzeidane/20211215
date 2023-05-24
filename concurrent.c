@@ -11,7 +11,7 @@
 
 int main(int argc,char *argv[]) {
     int server_fd, client_socket, read_size;
-    int port=defaultPort;
+    int PORT=defaultPort;
     struct sockaddr_in server_addr, client_addr;
     char buffer[BUFFER_SIZE] = {0};
     int opt;
