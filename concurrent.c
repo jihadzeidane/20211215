@@ -32,6 +32,11 @@ int main(int argc,char *argv[]) {
         fprintf(stderr, "%s [-p port]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+    if(PORT ==defaultPort){
+        fprintf(stderr,"Port arguement required.\n");
+        fprintf(stderr,"pass port using [-p port]",argv[0]);
+        exit(EXIT_FAILURE);
+    }
    
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("Socket creation failed");
