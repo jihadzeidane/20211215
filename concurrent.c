@@ -18,7 +18,7 @@ int main(int argc,char *argv[]) {
     while((opt=getopt(argc,argv,"p"))!=-1){
         switch(opt){
             case 'p':
-                port=atoi(optarg);
+                PORT=atoi(optarg);
                 break;
             default:
                 fprintf(stderr,"%s [-p port]\n",argv[0]);
