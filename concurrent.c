@@ -16,23 +16,22 @@ int main(int argc,char *argv[]) {
     char buffer[BUFFER_SIZE] = {0};
     int opt;
     int portarg= 0;
-    while((opt=getopt(argc,argv,"p"))!=-1){
-        switch(opt){
+   while ((opt = getopt(argc, argv, "p:")) != -1) {
+        switch (opt) {
             case 'p':
-                PORT=atoi(optarg);
-                portarg=1;
+                PORT = atoi(optarg);
                 break;
             default:
-                fprintf(stderr,"%s [-p port]\n",argv[0]);
+                fprintf(stderr, "%s [-p port]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
-    if(!portarg){
-        fprintf(stderr,"Port arguement needed.\n");
-        fprintf(stderr,"%s -p port\n",argv[0]);
+
+    if (optind < argc) {
+        fprintf(stderr, "Unknown option: %s\n", argv[optind]);
+        fprintf(stderr, "%s [-p port]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-
    
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("Socket creation failed");
