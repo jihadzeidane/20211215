@@ -96,8 +96,7 @@ int main(int argc,char *argv[]) {
     while (1) {
         int client_addr_len = sizeof(client_addr);
 
-        
-        if ((client_socket = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t*)&client_addr_len)) < 0) {
+        if ((client_socket = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client_addr_len)) < 0) {
             perror("Accept failed");
             exit(EXIT_FAILURE);
         }
@@ -108,68 +107,44 @@ int main(int argc,char *argv[]) {
         }
 
         printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-       
-        write(client_socket,"........Welcome..........",strlen("........Welcome.........."));
-while (1) {
-   
 
-    printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-    
-   bool loginSuccessful = false;
-    while (!loginSuccessful) {
-        bool accessDenied = false;
+        bool loginSuccessful = false;
+        while (!loginSuccessful) {
+            bool accessDenied = false;
 
-       
-        write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
-        memset(buffer, 0, BUFFER_SIZE);
-        read_size = read(client_socket, buffer, BUFFER_SIZE);
-        buffer[strcspn(buffer, "\n")] = '\0'; 
-        char* username = strdup(buffer);
-
-        write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
-        memset(buffer, 0, BUFFER_SIZE);
-        read_size = read(client_socket, buffer, BUFFER_SIZE);
-        buffer[strcspn(buffer, "\n")] = '\0'; 
-        char* password = strdup(buffer);
-
-       
-        loginSuccessful = authenticateUser(username, password, passwordUsername);
-        if (loginSuccessful) {
-            write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
-            break; 
-        } else {
-            write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
-            write(client_socket, "Please try again.\n", strlen("Please try again.\n"));
-            accessDenied = true;
-        }
-
-        
-        free(username);
-        free(password);
-
-        if (accessDenied) {
-            continue; 
-        }
-    }
-
-   
-        
-
-    // ...
-}
-
-
-        while ((read_size = read(client_socket, buffer, BUFFER_SIZE)) > 0) {
-            write(client_socket, buffer, read_size);
+            write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
             memset(buffer, 0, BUFFER_SIZE);
+            read_size = read(client_socket, buffer, BUFFER_SIZE);
+            buffer[strcspn(buffer, "\n")] = '\0';
+            char* username = strdup(buffer);
+
+            write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
+            memset(buffer, 0, BUFFER_SIZE);
+            read_size = read(client_socket, buffer, BUFFER_SIZE);
+            buffer[strcspn(buffer, "\n")] = '\0'; 
+            char* password = strdup(buffer);
+
+          
+            loginSuccessful = authenticateUser(username, password, passwordUsername);
+            if (loginSuccessful) {
+                write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
+               
+            } else {
+                write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
+                write(client_socket, "Please try again.\n", strlen("Please try again.\n"));
+                accessDenied = true;
+            }
+
+            
+            free(username);
+            free(password);
+
+            if (accessDenied) {
+                continue; 
+            }
         }
 
-        if (read_size == 0) {
-            printf("Client disconnected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-        } else if (read_size == -1) {
-            perror("Read failed");
-            exit(EXIT_FAILURE);
-        }
+        //user commands
 
         close(client_socket);
     }
