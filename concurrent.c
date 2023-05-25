@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include<getopt.h>
 #include<stdbool.h>
+#include<dirent.h>
 
 #define defaultPort 0000
 #define BUFFER_SIZE 1024
@@ -143,6 +144,57 @@ int main(int argc,char *argv[]) {
                 continue; 
             }
         }
+if (loginSuccessful) {
+        write(client_socket, "Welcome to the server!\n", strlen("Welcome to the server!\n"));
+        write(client_socket, "You are now logged in.\n", strlen("You are now logged in.\n"));
+        write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
+        write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
+        write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
+
+        bool loggedIn = true;
+        while (loggedIn) {
+            write(client_socket, "Please enter a command: ", strlen("Please enter a command: "));
+            memset(buffer, 0, BUFFER_SIZE);
+            read_size = read(client_socket, buffer, BUFFER_SIZE);
+            buffer[strcspn(buffer, "\n")] = '\0'; 
+
+           
+            if (strcmp(buffer, "list") == 0) {
+                
+                DIR* directory;
+                struct dirent* file;
+
+                directory = opendir(inventory);
+                if (directory == NULL) {
+                    write(client_socket, "Failed to open directory.\n", strlen("Failed to open directory.\n"));
+                } else {
+                 
+                    while ((file = readdir(directory)) != NULL) {
+                        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+                           
+                            char fileDetails[BUFFER_SIZE];
+                            sprintf(fileDetails, "%s %ld\n", file->d_name, file->d_reclen);
+                            write(client_socket, fileDetails, strlen(fileDetails));
+                        }
+                    }
+                    closedir(directory);
+
+                    
+                    write(client_socket, ".\n", strlen(".\n"));
+                }
+            } else if (strcmp(buffer, "quit") == 0) {
+             
+                write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
+                loggedIn = false;
+            } else {
+              
+                write(client_socket, "Unrecognized command. Please try again.\n", strlen("Unrecognized command. Please try again.\n"));
+            }
+        }
+    }
+
+    // ...
+}
 
         //user commands
 
