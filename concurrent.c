@@ -20,14 +20,15 @@ int main(int argc,char *argv[]) {
     int portarg= 0;
    while ((opt = getopt(argc, argv, "d:p:u:")) != -1) {
         switch (opt) {
+             case 'd':
+            inventory=optarg;
+            break;
             case 'p':
             PORT = atoi(optarg);
             break;
-            case 'd':
-            inventory=optarg;
-            break;
+           
             case 'u':
-            passwordUsername=optarg;
+             passwordUsername=optarg;
             default:
             fprintf(stderr, "%s [-p port]\n", argv[0]);
             exit(EXIT_FAILURE);
