@@ -40,8 +40,8 @@ int main(int argc,char *argv[]) {
         exit(EXIT_FAILURE);
     }
     if(passwordUsername==NULL||inventory==NULL||PORT==defaultPort){
-        fprintf(stderr,"Port arguement required.\n");
-        fprintf(stderr,"pass port using [-p port]\npass directory using [-d directory]\npass password using [-u password]",argv[0]);
+        fprintf(stderr,"Arguements required to run.\n");
+        fprintf(stderr,"Pass port using [-p port]\nPass directory using [-d directory]\nPass password using [-u password]\n",argv[0]);
         exit(EXIT_FAILURE);
     }
    
