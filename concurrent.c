@@ -34,11 +34,7 @@ int main(int argc,char *argv[]) {
         }
     }
 
-    if (optind < argc) {
-        fprintf(stderr, "Unknown option: %s\n", argv[optind]);
-        fprintf(stderr, "%s [-p port]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+   
     if(passwordUsername==NULL||inventory==NULL||PORT==defaultPort){
         fprintf(stderr,"Arguements required to run.\n");
         fprintf(stderr,"Pass port using [-p port]\nPass directory using [-d directory]\nPass password using [-u password]\n",argv[0]);
