@@ -8,6 +8,31 @@
 
 #define defaultPort 0000
 #define BUFFER_SIZE 1024
+bool authenticateUser(const char *username, const char *password, const char *passwordFile) {
+    FILE *file = fopen(passwordFile, "r");
+    if (file == NULL) {
+        perror("Failed to open password file");
+        exit(EXIT_FAILURE);
+    }
+
+    char line[100];
+    char *storedUsername;
+    char *storedPassword;
+
+    while (fgets(line, sizeof(line), file)) {
+        storedUsername = strtok(line, ":");
+        storedPassword = strtok(NULL, ":");
+        storedPassword[strcspn(storedPassword, "\n")] = '\0';
+        if (storedUsername != NULL && storedPassword != NULL &&
+            strcmp(username, storedUsername) == 0 && strcmp(password, storedPassword) == 0) {
+            fclose(file);
+            return true;
+        }
+    }
+
+    fclose(file);
+    return false;
+}
 
 int main(int argc,char *argv[]) {
     int server_fd, client_socket, read_size;
@@ -82,6 +107,28 @@ int main(int argc,char *argv[]) {
         }
 
         printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
+        write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
+    memset(buffer, 0, BUFFER_SIZE);
+    read_size = read(client_socket, buffer, BUFFER_SIZE);
+    buffer[strcspn(buffer, "\n")] = '\0'; 
+    char* username = strdup(buffer);
+
+    write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
+    memset(buffer, 0, BUFFER_SIZE);
+    read_size = read(client_socket, buffer, BUFFER_SIZE);
+    buffer[strcspn(buffer, "\n")] = '\0'; 
+    char* password = strdup(buffer);
+    bool loginSuccessful = authenticateUser(username, password, passwordUsername);
+    if (loginSuccessful) {
+        write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
+        //
+    } else {
+        write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
+        break;
+    }
+    free(username);
+    free(password);
+
 
         while ((read_size = read(client_socket, buffer, BUFFER_SIZE)) > 0) {
             write(client_socket, buffer, read_size);
