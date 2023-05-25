@@ -119,7 +119,6 @@ while (1) {
     while (!loginSuccessful) {
         bool accessDenied = false;
 
-        rd
         write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
         memset(buffer, 0, BUFFER_SIZE);
         read_size = read(client_socket, buffer, BUFFER_SIZE);
