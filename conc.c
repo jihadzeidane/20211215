@@ -5,11 +5,18 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <dirent.h>
-#include<stdbool.h>
-#include<getopt.h>
+#include <stdbool.h>
+#include <getopt.h>
+#include <pthread.h>
 
-#define defaultPort 0000
+#define DEFAULT_PORT 0000
 #define BUFFER_SIZE 1024
+
+struct ThreadArgs {
+    int client_socket;
+    const char* inventory;
+    const char* passwordUsername;
+};
 
 int authenticateUser(const char* username, const char* password, const char* passwordFile) {
     FILE* file = fopen(passwordFile, "r");
@@ -26,21 +33,101 @@ int authenticateUser(const char* username, const char* password, const char* pas
 
         if (strcmp(username, storedUsername) == 0 && strcmp(password, storedPassword) == 0) {
             fclose(file);
-            return 1; 
+            return 1;
         }
     }
 
     fclose(file);
-    return 0; 
+    return 0;
+}
+
+void* clientThread(void* arg) {
+    struct ThreadArgs* threadArgs = (struct ThreadArgs*)arg;
+    int client_socket = threadArgs->client_socket;
+    const char* inventory = threadArgs->inventory;
+    const char* passwordUsername = threadArgs->passwordUsername;
+
+    char buffer[BUFFER_SIZE] = {0};
+    bool accessDenied = false;
+    char username[BUFFER_SIZE];
+    char password[BUFFER_SIZE];
+
+    while (!accessDenied) {
+        write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
+        memset(buffer, 0, BUFFER_SIZE);
+        int read_size = read(client_socket, buffer, BUFFER_SIZE);
+        buffer[strcspn(buffer, "\n")] = '\0';
+        strcpy(username, buffer);
+
+        write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
+        memset(buffer, 0, BUFFER_SIZE);
+        read_size = read(client_socket, buffer, BUFFER_SIZE);
+        buffer[strcspn(buffer, "\n")] = '\0';
+        strcpy(password, buffer);
+
+        int loginResult = authenticateUser(username, password, passwordUsername);
+        if (loginResult == 1) {
+            write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
+            break;
+        } else {
+            write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
+            write(client_socket, "Please try again.\n", strlen("Please try again.\n"));
+            accessDenied = true;
+        }
+    }
+
+    if (!accessDenied) {
+        write(client_socket, "Welcome to the server!\n", strlen("Welcome to the server!\n"));
+        write(client_socket, "You are now logged in.\n", strlen("You are now logged in.\n"));
+        write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
+        write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
+        write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
+
+        bool loggedIn = true;
+        while (loggedIn) {
+            write(client_socket, "Please enter a command: \n", strlen("Please enter a command: \n"));
+            memset(buffer, 0, BUFFER_SIZE);
+            int read_size = read(client_socket, buffer, BUFFER_SIZE);
+            buffer[strcspn(buffer, "\n")] = '\0';
+
+            if (strcmp(buffer, "list") == 0) {
+                DIR* directory;
+                struct dirent* file;
+
+                directory = opendir(inventory);
+                if (directory == NULL) {
+                    write(client_socket, "Failed to open directory.\n", strlen("Failed to open directory.\n"));
+                } else {
+                    while ((file = readdir(directory)) != NULL) {
+                        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+                            char fileDetails[BUFFER_SIZE];
+                            sprintf(fileDetails, "%s %ld\n", file->d_name, file->d_reclen);
+                            write(client_socket, fileDetails, strlen(fileDetails));
+                        }
+                    }
+                    closedir(directory);
+                    write(client_socket, ".\n", strlen(".\n"));
+                }
+            } else if (strcmp(buffer, "quit") == 0) {
+                write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
+                loggedIn = false;
+            } else {
+                write(client_socket, "Unrecognized command. Please try again.\n", strlen("Unrecognized command. Please try again.\n"));
+            }
+        }
+    }
+
+    close(client_socket);
+    free(threadArgs);
+    pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[]) {
-    int server_fd, client_socket, read_size;
-    int PORT = defaultPort;
-    char* inventory;
-    char* passwordUsername;
+    int server_fd, client_socket;
+    int PORT = DEFAULT_PORT;
+    char* inventory = NULL;
+    char* passwordUsername = NULL;
     struct sockaddr_in server_addr, client_addr;
-    char buffer[BUFFER_SIZE] = {0};
     int opt;
     int portarg = 0;
     while ((opt = getopt(argc, argv, "d:p:u:")) != -1) {
@@ -60,9 +147,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (passwordUsername == NULL || inventory == NULL || PORT == defaultPort) {
+    if (passwordUsername == NULL || inventory == NULL || PORT == DEFAULT_PORT) {
         fprintf(stderr, "Arguments required to run.\n");
-        fprintf(stderr, "Pass port using [-p port]\nPass directory using [-d directory]\nPass password using [-u password]\n", argv[0]);
+        fprintf(stderr, "Pass port using [-p port]\nPass directory using [-d directory]\nPass password using [-u password]\n");
         exit(EXIT_FAILURE);
     }
 
@@ -103,77 +190,18 @@ int main(int argc, char* argv[]) {
 
         printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
 
-        bool accessDenied = false;
-        char username[BUFFER_SIZE];
-        char password[BUFFER_SIZE];
+        struct ThreadArgs* threadArgs = (struct ThreadArgs*)malloc(sizeof(struct ThreadArgs));
+        threadArgs->client_socket = client_socket;
+        threadArgs->inventory = inventory;
+        threadArgs->passwordUsername = passwordUsername;
 
-        while (!accessDenied) {
-            write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
-            memset(buffer, 0, BUFFER_SIZE);
-            read_size = read(client_socket, buffer, BUFFER_SIZE);
-            buffer[strcspn(buffer, "\n")] = '\0'; 
-            strcpy(username, buffer);
-
-            write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
-            memset(buffer, 0, BUFFER_SIZE);
-            read_size = read(client_socket, buffer, BUFFER_SIZE);
-            buffer[strcspn(buffer, "\n")] = '\0'; 
-            strcpy(password, buffer);
-
-            int loginResult = authenticateUser(username, password, passwordUsername);
-            if (loginResult == 1) {
-                write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
-                break; 
-            } else {
-                write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
-                write(client_socket, "Please try again.\n", strlen("Please try again.\n"));
-                accessDenied = true;
-            }
+        pthread_t thread;
+        if (pthread_create(&thread, NULL, clientThread, (void*)threadArgs) != 0) {
+            perror("Thread creation failed");
+            exit(EXIT_FAILURE);
         }
 
-        if (!accessDenied) {
-            write(client_socket, "Welcome to the server!\n", strlen("Welcome to the server!\n"));
-            write(client_socket, "You are now logged in.\n", strlen("You are now logged in.\n"));
-            write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
-            write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
-            write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
-
-            bool loggedIn = true;
-            while (loggedIn) {
-                write(client_socket, "Please enter a command: \n", strlen("Please enter a command: \n"));
-                memset(buffer, 0, BUFFER_SIZE);
-                read_size = read(client_socket, buffer, BUFFER_SIZE);
-                buffer[strcspn(buffer, "\n")] = '\0';
-
-                
-                if (strcmp(buffer, "list") == 0) {
-                    DIR* directory;
-                    struct dirent* file;
-
-                    directory = opendir(inventory);
-                    if (directory == NULL) {
-                        write(client_socket, "Failed to open directory.\n", strlen("Failed to open directory.\n"));
-                    } else {
-                        while ((file = readdir(directory)) != NULL) {
-                            if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
-                                char fileDetails[BUFFER_SIZE];
-                                sprintf(fileDetails, "%s %ld\n", file->d_name, file->d_reclen);
-                                write(client_socket, fileDetails, strlen(fileDetails));
-                            }
-                        }
-                        closedir(directory);
-                        write(client_socket, ".\n", strlen(".\n"));
-                    }
-                } else if (strcmp(buffer, "quit") == 0) {
-                    write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
-                    loggedIn = false;
-                } else {
-                    write(client_socket, "Unrecognized command. Please try again.\n", strlen("Unrecognized command. Please try again.\n"));
-                }
-            }
-        }
-
-        close(client_socket);
+        pthread_detach(thread);
     }
 
     close(server_fd);
