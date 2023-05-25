@@ -82,6 +82,7 @@ void* clientThread(void* arg) {
         write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
         write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
         write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
+         write(client_socket, " - get <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
 
         bool loggedIn = true;
         while (loggedIn) {
@@ -111,6 +112,24 @@ void* clientThread(void* arg) {
             } else if (strcmp(buffer, "quit") == 0) {
                 write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
                 loggedIn = false;
+             } else if (strcmp(command, "get") == 0) {
+                if (filename != NULL) {
+                    char filepath[BUFFER_SIZE];
+                    snprintf(filepath, BUFFER_SIZE, "%s/%s", inventory, filename);
+
+                    FILE* file = fopen(filepath, "r");
+                    if (file == NULL) {
+                        write(client_socket, "Failed to open file.\n", strlen("Failed to open file.\n"));
+                    } else {
+                        char fileContents[BUFFER_SIZE];
+                        while (fgets(fileContents, BUFFER_SIZE, file)) {
+                            write(client_socket, fileContents, strlen(fileContents));
+                        }
+                        fclose(file);
+                    }
+                } else {
+                    write(client_socket, "Please provide a filename.\n", strlen("Please provide a filename.\n"));
+                }
             } else {
                 write(client_socket, "Unrecognized command. Please try again.\n", strlen("Unrecognized command. Please try again.\n"));
             }
