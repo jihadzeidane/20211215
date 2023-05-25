@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <dirent.h>
 #include<stdbool.h>
-#include<getopt.h
+#include<getopt.h>
 
 #define defaultPort 0000
 #define BUFFER_SIZE 1024
