@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
             bool loggedIn = true;
             while (loggedIn) {
-                write(client_socket, "Please enter a command: ", strlen("Please enter a command: "));
+                write(client_socket, "Please enter a command: \n", strlen("Please enter a command: \n"));
                 memset(buffer, 0, BUFFER_SIZE);
                 read_size = read(client_socket, buffer, BUFFER_SIZE);
                 buffer[strcspn(buffer, "\n")] = '\0';
