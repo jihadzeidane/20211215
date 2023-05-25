@@ -114,11 +114,11 @@ while (1) {
     // ...
 
     printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-
+    write(client_socket,"........Welcome..........",strlen("........Welcome.........."));
     bool loginSuccessful = false;
     while (!loginSuccessful) {
         bool accessDenied = false;
-
+   
         write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
         memset(buffer, 0, BUFFER_SIZE);
         read_size = read(client_socket, buffer, BUFFER_SIZE);
