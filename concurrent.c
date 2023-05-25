@@ -29,6 +29,7 @@ int main(int argc,char *argv[]) {
            
             case 'u':
              passwordUsername=optarg;
+                break;
             default:
             fprintf(stderr, "%s [-p port]\n", argv[0]);
             exit(EXIT_FAILURE);
