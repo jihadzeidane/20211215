@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include<getopt.h>
+#include<stdbool.h>
 
 #define defaultPort 0000
 #define BUFFER_SIZE 1024
