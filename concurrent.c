@@ -12,18 +12,25 @@
 int main(int argc,char *argv[]) {
     int server_fd, client_socket, read_size;
     int PORT=defaultPort;
+    char *inventory;
+    char *passwordUsername;
     struct sockaddr_in server_addr, client_addr;
     char buffer[BUFFER_SIZE] = {0};
     int opt;
     int portarg= 0;
-   while ((opt = getopt(argc, argv, "p:")) != -1) {
+   while ((opt = getopt(argc, argv, "d:p:u:")) != -1) {
         switch (opt) {
             case 'p':
-                PORT = atoi(optarg);
-                break;
+            PORT = atoi(optarg);
+            break;
+            case 'd':
+            inventory=optarg;
+            break;
+            case 'u':
+            passwordUsername=optarg;
             default:
-                fprintf(stderr, "%s [-p port]\n", argv[0]);
-                exit(EXIT_FAILURE);
+            fprintf(stderr, "%s [-p port]\n", argv[0]);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -32,9 +39,9 @@ int main(int argc,char *argv[]) {
         fprintf(stderr, "%s [-p port]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    if(PORT ==defaultPort){
+    if(passwordUsername==NULL||inventory==NULL||PORT==defaultPort){
         fprintf(stderr,"Port arguement required.\n");
-        fprintf(stderr,"pass port using [-p port]\n",argv[0]);
+        fprintf(stderr,"pass port using [-p port]\npass directory using [-d directory]\npass password using [-u password]",argv[0]);
         exit(EXIT_FAILURE);
     }
    
