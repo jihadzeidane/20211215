@@ -125,7 +125,7 @@ int main(int argc,char *argv[]) {
         //
     } else {
         write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
-        break;
+        write(client_socket,"Please try again!\n",strlen("Please try again!\n"));
     }
     free(username);
     free(password);
