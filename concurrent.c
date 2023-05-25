@@ -82,7 +82,7 @@ void* clientThread(void* arg) {
         write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
         write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
         write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
-         write(client_socket, " - get <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
+        write(client_socket, " - get <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
 
         bool loggedIn = true;
         while (loggedIn) {
@@ -112,7 +112,9 @@ void* clientThread(void* arg) {
             } else if (strcmp(buffer, "quit") == 0) {
                 write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
                 loggedIn = false;
-             } else if (strcmp(command, "get") == 0) {
+            } else if (strncmp(buffer, "get", 3) == 0) {
+                
+                char* filename = strtok(buffer + 3, " ");
                 if (filename != NULL) {
                     char filepath[BUFFER_SIZE];
                     snprintf(filepath, BUFFER_SIZE, "%s/%s", inventory, filename);
@@ -182,7 +184,7 @@ int main(int argc, char* argv[]) {
     server_addr.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Binding failed");
+        perror("Bind failed");
         exit(EXIT_FAILURE);
     }
 
@@ -191,39 +193,29 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Echo server listening on port %d...\n", PORT);
+    printf("Server listening on port %d\n", PORT);
 
-    while (1) {
-        int client_addr_len = sizeof(client_addr);
+    int addr_len = sizeof(struct sockaddr_in);
+    while ((client_socket = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&addr_len))) {
+        printf("New connection accepted\n");
 
-        if ((client_socket = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client_addr_len)) < 0) {
-            perror("Accept failed");
-            exit(EXIT_FAILURE);
-        }
-
-        char client_ip[INET_ADDRSTRLEN];
-        if (inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN) == NULL) {
-            perror("Inet_ntop failed");
-            exit(EXIT_FAILURE);
-        }
-
-        printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-
+        pthread_t thread;
         struct ThreadArgs* threadArgs = (struct ThreadArgs*)malloc(sizeof(struct ThreadArgs));
         threadArgs->client_socket = client_socket;
         threadArgs->inventory = inventory;
         threadArgs->passwordUsername = passwordUsername;
 
-        pthread_t thread;
         if (pthread_create(&thread, NULL, clientThread, (void*)threadArgs) != 0) {
-            perror("Thread creation failed");
+            perror("Failed to create thread");
             exit(EXIT_FAILURE);
         }
-
-        pthread_detach(thread);
     }
 
-    close(server_fd);
+    if (client_socket < 0) {
+        perror("Accept failed");
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
 }
+
