@@ -108,28 +108,52 @@ int main(int argc,char *argv[]) {
         }
 
         printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
-        write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
-    memset(buffer, 0, BUFFER_SIZE);
-    read_size = read(client_socket, buffer, BUFFER_SIZE);
-    buffer[strcspn(buffer, "\n")] = '\0'; 
-    char* username = strdup(buffer);
+        // ...
 
-    write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
-    memset(buffer, 0, BUFFER_SIZE);
-    read_size = read(client_socket, buffer, BUFFER_SIZE);
-    buffer[strcspn(buffer, "\n")] = '\0'; 
-    char* password = strdup(buffer);
-    bool loginSuccessful = authenticateUser(username, password, passwordUsername);
-    if (loginSuccessful) {
-        write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
-        //
-    } else {
-        write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
-        write(client_socket,"Please try again!\n",strlen("Please try again!\n"));
-        continue;
+while (1) {
+    // ...
+
+    printf("New client connected: %s:%d\n", client_ip, ntohs(client_addr.sin_port));
+
+    bool loginSuccessful = false;
+    while (!loginSuccessful) {
+        bool accessDenied = false;
+
+        rd
+        write(client_socket, "Please enter your username: ", strlen("Please enter your username: "));
+        memset(buffer, 0, BUFFER_SIZE);
+        read_size = read(client_socket, buffer, BUFFER_SIZE);
+        buffer[strcspn(buffer, "\n")] = '\0'; 
+        char* username = strdup(buffer);
+
+        write(client_socket, "Please enter your password: ", strlen("Please enter your password: "));
+        memset(buffer, 0, BUFFER_SIZE);
+        read_size = read(client_socket, buffer, BUFFER_SIZE);
+        buffer[strcspn(buffer, "\n")] = '\0'; 
+        char* password = strdup(buffer);
+
+        
+        loginSuccessful = authenticateUser(username, password, passwordUsername);
+        if (loginSuccessful) {
+            write(client_socket, "Login successful!\n", strlen("Login successful!\n"));
+            //
+        } else {
+            write(client_socket, "Access denied!\n", strlen("Access denied!\n"));
+            write(client_socket, "Please try again.\n", strlen("Please try again.\n"));
+            accessDenied = true;
+        }
+
+       
+        free(username);
+        free(password);
+
+        if (accessDenied) {
+            continue; // Ask for username and password again
+        }
     }
-    free(username);
-    free(password);
+
+    // ...
+}
 
 
         while ((read_size = read(client_socket, buffer, BUFFER_SIZE)) > 0) {
