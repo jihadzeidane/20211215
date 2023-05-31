@@ -80,9 +80,9 @@ void* clientThread(void* arg) {
         write(client_socket, "Welcome to the server!\n", strlen("Welcome to the server!\n"));
         write(client_socket, "You are now logged in.\n", strlen("You are now logged in.\n"));
         write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
-        write(client_socket, " - list: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
-        write(client_socket, " - quit: Quit the session\n", strlen(" - quit: Quit the session\n"));
-        write(client_socket, " - get <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
+        write(client_socket, " - LIST: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
+        write(client_socket, " - QUIT: Quit the session\n", strlen(" - quit: Quit the session\n"));
+        write(client_socket, " - GET <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
 
         bool loggedIn = true;
         while (loggedIn) {
