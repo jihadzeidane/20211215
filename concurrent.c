@@ -114,7 +114,7 @@ void* clientThread(void* arg) {
                 write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
                 loggedIn = false;
             }
-            } else if (strncmp(buffer, "DEL", 3) == 0) {
+             else if (strncmp(buffer, "DEL", 3) == 0) {
                  char* filename = strtok(buffer + 3, " ");
                  if (filename != NULL) {
                  char filepath[BUFFER_SIZE];
