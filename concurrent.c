@@ -80,9 +80,10 @@ void* clientThread(void* arg) {
         write(client_socket, "Welcome to the server!\n", strlen("Welcome to the server!\n"));
         write(client_socket, "You are now logged in.\n", strlen("You are now logged in.\n"));
         write(client_socket, "You can use the following commands:\n", strlen("You can use the following commands:\n"));
-        write(client_socket, " - LIST: List filenames and file sizes\n", strlen(" - list: List filenames and file sizes\n"));
-        write(client_socket, " - QUIT: Quit the session\n", strlen(" - quit: Quit the session\n"));
-        write(client_socket, " - GET <filename>: Get the contents of a file\n", strlen(" - get <filename>: Get the contents of a file\n"));
+        write(client_socket, " - LIST: List filenames and file sizes\n", strlen(" - LIST: List filenames and file sizes\n"));
+        write(client_socket, " - QUIT: Quit the session\n", strlen(" - QUIT: Quit the session\n"));
+        write(client_socket, " - GET: Get the contents of a file\n", strlen(" - GET: Get the contents of a file\n"));
+        write(client_socket, " - DEL: Deletes file\n", strlen(" - DEL: Deletes file\n"));
 
         bool loggedIn = true;
         while (loggedIn) {
@@ -112,7 +113,23 @@ void* clientThread(void* arg) {
             } else if (strcmp(buffer, "QUIT") == 0) {
                 write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
                 loggedIn = false;
-            } else if (strncmp(buffer, "GET", 3) == 0) {
+            }
+            } else if (strncmp(buffer, "DEL", 3) == 0) {
+                 char* filename = strtok(buffer + 3, " ");
+                 if (filename != NULL) {
+                 char filepath[BUFFER_SIZE];
+                 snprintf(filepath, BUFFER_SIZE, "%s/%s", inventory, filename);
+  
+                 if (remove(filepath) == 0) {
+            write(client_socket, "File deleted successfully.\n", strlen("File deleted successfully.\n"));
+            } else {
+            write(client_socket, "Failed to delete file.\n", strlen("Failed to delete file.\n"));
+        }
+          } else {
+        write(client_socket, "Please provide a filename.\n", strlen("Please provide a filename.\n"));
+           }
+ }
+             else if (strncmp(buffer, "GET", 3) == 0) {
                 
                 char* filename = strtok(buffer + 3, " ");
                 if (filename != NULL) {
