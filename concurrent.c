@@ -91,7 +91,7 @@ void* clientThread(void* arg) {
             int read_size = read(client_socket, buffer, BUFFER_SIZE);
             buffer[strcspn(buffer, "\n")] = '\0';
 
-            if (strcmp(buffer, "list") == 0) {
+            if (strcmp(buffer, "LIST") == 0) {
                 DIR* directory;
                 struct dirent* file;
 
@@ -109,10 +109,10 @@ void* clientThread(void* arg) {
                     closedir(directory);
                     write(client_socket, ".\n", strlen(".\n"));
                 }
-            } else if (strcmp(buffer, "quit") == 0) {
+            } else if (strcmp(buffer, "QUIT") == 0) {
                 write(client_socket, "Goodbye!\n", strlen("Goodbye!\n"));
                 loggedIn = false;
-            } else if (strncmp(buffer, "get", 3) == 0) {
+            } else if (strncmp(buffer, "GET", 3) == 0) {
                 
                 char* filename = strtok(buffer + 3, " ");
                 if (filename != NULL) {
